@@ -1,0 +1,51 @@
+name: Telegram Keyword Monitor
+
+on:
+  schedule:
+    # Runs every 5 minutes
+    - cron: "*/5 * * * *"
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore state cache
+        uses: actions/cache@v4
+        with:
+          path: state.json
+          key: telegram-state-${{ github.ref }}
+          restore-keys: |
+            telegram-state-
+
+      - name: Run keyword monitor
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          SESSION_STRING: ${{ secrets.SESSION_STRING }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          NOTIFY_CHAT_ID: ${{ secrets.NOTIFY_CHAT_ID }}
+          KEYWORDS: ${{ secrets.KEYWORDS }}
+          MONITOR_CHAT_IDS: ${{ secrets.MONITOR_CHAT_IDS }}
+        run: python main.py
+
+      - name: Save state cache
+        uses: actions/cache/save@v4
+        with:
+          path: state.json
+          key: telegram-state-${{ github.ref }}-${{ github.run_id }}

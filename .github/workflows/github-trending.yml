@@ -1,0 +1,34 @@
+name: GitHub Trending Daily Bot
+
+on:
+  schedule:
+    # 15:00 UTC = 19:00 Tbilisi (UTC+4)
+    - cron: "0 15 * * *"
+  workflow_dispatch: # Allow manual trigger for testing
+
+permissions:
+  contents: read
+
+jobs:
+  send-trending:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Send GitHub Trending digest
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          NOTIFY_CHAT_ID: ${{ secrets.NOTIFY_CHAT_ID }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          TOP_N: "15"
+        run: python github_trending_bot.py
