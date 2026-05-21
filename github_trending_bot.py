@@ -13,7 +13,7 @@ Usage:
 Environment variables:
     BOT_TOKEN           Telegram bot token
     NOTIFY_CHAT_ID      Telegram chat/user ID to send the message to
-    GITHUB_TOKEN        GitHub token — raises rate limit from 60 to 5000/hr (required in CI)
+    GH_TOKEN            GitHub token — raises rate limit from 60 to 5000/hr (required in CI)
     TOP_N               Number of repos to show per section (default: 15)
 """
 
@@ -34,7 +34,7 @@ import requests
 
 BOT_TOKEN      = os.environ.get("BOT_TOKEN", "")
 NOTIFY_CHAT_ID = os.environ.get("NOTIFY_CHAT_ID", "")
-GITHUB_TOKEN   = os.environ.get("GITHUB_TOKEN", "")
+GH_TOKEN     = os.environ.get("GH_TOKEN", "")
 
 try:
     TOP_N = int(os.environ.get("TOP_N", "15"))
@@ -61,8 +61,8 @@ SCRAPE_HEADERS = {
 
 def gh_api_headers(accept: str = "application/vnd.github.v3+json") -> dict:
     h = {"User-Agent": "github-trending-bot/1.0", "Accept": accept}
-    if GITHUB_TOKEN:
-        h["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    if GH_TOKEN:
+        h["Authorization"] = f"Bearer {GH_TOKEN}"
     return h
 
 
@@ -224,7 +224,7 @@ def fetch_monthly_stars_graphql(repo_name: str):
     Used when REST binary search returns None (repo too large for pagination).
     Returns: int, "RATE_LIMITED", or None on failure.
     """
-    if not GITHUB_TOKEN:
+    if not GH_TOKEN:
         return None
 
     owner, name = repo_name.split("/", 1)
@@ -252,7 +252,7 @@ def fetch_monthly_stars_graphql(repo_name: str):
                 "https://api.github.com/graphql",
                 json={"query": query, "variables": variables},
                 headers={
-                    "Authorization": f"Bearer {GITHUB_TOKEN}",
+                    "Authorization": f"Bearer {GH_TOKEN}",
                     "User-Agent": "github-trending-bot/1.0",
                 },
                 timeout=15,
